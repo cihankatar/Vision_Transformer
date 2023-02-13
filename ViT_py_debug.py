@@ -52,10 +52,8 @@ for batch in train_loader:
 images=images.numpy()
 
 print(images.shape)
-print(patching_func(images,4).shape)
 patches=torch.tensor(patching_func(images,4))
 print(patches.shape)
-print(patches.float().dtype)
 
 token_dim=8
 patch_size=4
@@ -75,9 +73,11 @@ linear_emb = linear_map(patches.float())
 tokens = torch.cat((class_token,linear_emb),dim=1)
 #print(tokens.shape)
 
+tokens = torch.rand(96,)
 n,number_tokens,patch_size = tokens.shape
 result = torch.zeros(n,number_tokens,patch_size)
 print('result: ',result.shape)
+
 
 n_heads    = 2
 
@@ -108,5 +108,7 @@ for idx,token in enumerate(tokens):   # 128 batch. each of 50x8, token size : 50
         concat[head,:,:]= attention
     result[idx,:,:] = torch.flatten(input=concat, start_dim=0, end_dim=1)
 
-print(result.shape)
+print(result[1,3:8,3:8].shape)
+print(result[2,3:8,3:8].shape)
+
 print(concat.shape)
