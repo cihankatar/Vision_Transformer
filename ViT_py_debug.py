@@ -80,9 +80,10 @@ class ViT (nn.Module):
         patches     = patching_func(images, self.patch_size)
         linear_emb  = self.linear_map(patches)
 
+
         tokens      = torch.cat((all_class_token,linear_emb),dim=1)
 
-        out         = tokens        # positional embeddings will be added
+        out         = tokens   # + self.get_positional_embeddings.repeat(n, 1, 1)    # positional embeddings will be added
 
         for block in self.blocks:
             out = block(out)
@@ -109,10 +110,12 @@ class ViTBlock(nn.Module):
     def forward(self, x):
         input = self.layer_norm1(x)
         out = x + self.msa(input)
-        out = self.layer_norm2(out) + self.mlp(self.layer_norm2(out))
+        out = self.layer_norm2(out)
+        out = out + self.mlp(out)
         return out
         
 class MSA_Module(nn.Module):
+
     def __init__(self, token_dim, n_heads=2):
         super().__init__() 
         self.n_heads    = n_heads
@@ -122,13 +125,13 @@ class MSA_Module(nn.Module):
         self.k_layers   = nn.ModuleList([nn.Linear(token_dim,token_dim) for _ in range(n_heads)])
         self.v_layers   = nn.ModuleList([nn.Linear(token_dim,token_dim) for _ in range(n_heads)])
         self.softmax    = nn.Softmax(dim=-1)
+        self.linear_map = nn.Linear(100,50)   #  ???????????????
 
     def forward (self, tokens):
         
         self.n,self.number_tokens,self.token_size = tokens.shape
         result = torch.zeros(self.n,self.number_tokens*self.n_heads,self.token_size)
-        linear_map = nn.Linear(self.number_tokens*self.n_heads,self.number_tokens)
-        out=torch.zeros((self.n,self.number_tokens,self.token_size))
+        out    = torch.zeros((self.n,self.number_tokens,self.token_size))
 
         for idx,token in enumerate(tokens):   # 128 batch. each of 50x8, token size : 50x8   --> 50x8            
             concat      = torch.zeros(self.n_heads,self.number_tokens,self.token_size)
@@ -146,12 +149,14 @@ class MSA_Module(nn.Module):
                 attention_mask  = self.softmax(mat_mul)
                 attention       = torch.matmul(attention_mask,v)
                 concat[head,:,:] = attention
-            result[idx,:,:]=torch.tensor(torch.flatten(input=concat, start_dim=0, end_dim=1),requires_grad=True)
-
+            result[idx,:,:]=torch.flatten(input=concat, start_dim=0, end_dim=1)
+        return result
+'''
         for idx,i in enumerate(result):
-            temp=linear_map(result[idx].T)
+            temp=self.linear_map(result[idx].T)
             out[idx]=temp.T
-        return out
+'''
+
 
 def main():
     # Loading data
