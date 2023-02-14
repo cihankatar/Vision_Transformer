@@ -125,11 +125,13 @@ class MSA_Module(nn.Module):
 
     def forward (self, tokens):
         
-        self.n,self.number_tokens,self.patch_size = tokens.shape
-        result = torch.zeros(self.n,self.number_tokens*self.n_heads,self.patch_size)
+        self.n,self.number_tokens,self.token_size = tokens.shape
+        result = torch.zeros(self.n,self.number_tokens*self.n_heads,self.token_size)
+        linear_map = nn.Linear(self.number_tokens*self.n_heads,self.number_tokens)
+        out=torch.zeros((self.n,self.number_tokens,self.token_size))
 
         for idx,token in enumerate(tokens):   # 128 batch. each of 50x8, token size : 50x8   --> 50x8            
-            concat      = torch.zeros(self.n_heads,self.number_tokens,self.patch_size)
+            concat      = torch.zeros(self.n_heads,self.number_tokens,self.token_size)
         
             for head in range(self.n_heads):        # number of heads : 2
                 q_linear = self.q_layers[head]      # linear (8x8)  == 50x8 --> 50x8
@@ -145,6 +147,11 @@ class MSA_Module(nn.Module):
                 attention       = torch.matmul(attention_mask,v)
                 concat[head,:,:] = attention
             result[idx,:,:]=torch.tensor(torch.flatten(input=concat, start_dim=0, end_dim=1),requires_grad=True)
+
+        for idx,i in enumerate(result):
+            temp=linear_map(result[idx].T)
+            out[idx]=temp.T
+        return out
 
 def main():
     # Loading data
