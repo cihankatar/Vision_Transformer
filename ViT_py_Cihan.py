@@ -45,7 +45,6 @@ def get_positional_embeddings(sequence_length, d):
             result[i][j] = np.sin(i / (10000 ** (j / d))) if j % 2 == 0 else np.cos(i / (10000 ** ((j - 1) / d)))
     return result
 
-
 # CLASSES VIT
 
 class ViT (nn.Module):
@@ -72,18 +71,22 @@ class ViT (nn.Module):
 
         self.n_images,self.c,self.h_image,self.w_image = images.shape
         
+
+        all_class_token = self.class_token.repeat(self.n_images, 1, 1) 
+
+        '''
         all_class_token = torch.zeros((self.n_images, 1 , self.token_dim))
-        
         for i in range(self.n_images):
             all_class_token[i,:,:] = self.class_token
-        
+        '''
         patches     = patching_func(images, self.patch_size)
         linear_emb  = self.linear_map(patches)
+        positional_embeddings = get_positional_embeddings(int((self.h_image/self.patch_size)**2+1),int(self.token_dim))
 
 
         tokens      = torch.cat((all_class_token,linear_emb),dim=1)
 
-        out         = tokens   # + self.get_positional_embeddings.repeat(n, 1, 1)    # positional embeddings will be added
+        out         = tokens   # + positional_embeddings.repeat(self.n_images, 1, 1)    # positional embeddings will be added
 
         for block in self.blocks:
             out = block(out)
@@ -150,13 +153,12 @@ class MSA_Module(nn.Module):
                 attention       = torch.matmul(attention_mask,v)
                 concat[head,:,:] = attention
             result[idx,:,:]=torch.flatten(input=concat, start_dim=0, end_dim=1)
-        return result
-'''
+        
+
         for idx,i in enumerate(result):
             temp=self.linear_map(result[idx].T)
             out[idx]=temp.T
-'''
-
+        return out
 
 def main():
     # Loading data
@@ -169,7 +171,7 @@ def main():
     test_loader = DataLoader(test_set, shuffle=False, batch_size=128)
 
     model = ViT((1, 28, 28), patch_size=4, t_blocks=2, token_dim=8, n_heads=2, output_dim=10,mlp_layer_size=8)
-    N_EPOCHS = 5
+    N_EPOCHS = 1
     LR = 0.005
     optimizer = Adam(model.parameters(), lr=LR)
     criterion = CrossEntropyLoss()
