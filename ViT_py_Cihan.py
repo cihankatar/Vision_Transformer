@@ -70,8 +70,6 @@ class ViT (nn.Module):
     def forward(self, images):
 
         self.n_images,self.c,self.h_image,self.w_image = images.shape
-        
-
         all_class_token = self.class_token.repeat(self.n_images, 1, 1) 
 
         '''
@@ -83,9 +81,7 @@ class ViT (nn.Module):
         linear_emb  = self.linear_map(patches)
         positional_embeddings = get_positional_embeddings(int((self.h_image/self.patch_size)**2+1),int(self.token_dim))
 
-
         tokens      = torch.cat((all_class_token,linear_emb),dim=1)
-
         out         = tokens   # + positional_embeddings.repeat(self.n_images, 1, 1)    # positional embeddings will be added
 
         for block in self.blocks:

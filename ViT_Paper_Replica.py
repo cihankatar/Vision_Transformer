@@ -135,7 +135,7 @@ class MyViT(nn.Module):
         tokens = torch.cat((self.class_token.expand(n, 1, -1), tokens), dim=1)
         
         # Adding positional embedding
-        out = tokens  +  self.positional_embeddings.repeat(n, 1, 1)
+        out = tokens  # +  self.positional_embeddings.repeat(n, 1, 1)
         
         # Transformer Blocks
         for block in self.blocks:
@@ -170,7 +170,7 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print("Using device: ", device, f"({torch.cuda.get_device_name(device)})" if torch.cuda.is_available() else "")
     model = MyViT((1, 28, 28), n_patches=7, n_blocks=2, hidden_d=8, n_heads=2, out_d=10).to(device)
-    N_EPOCHS = 2
+    N_EPOCHS = 1
     LR = 0.005
 
     # Training loop
