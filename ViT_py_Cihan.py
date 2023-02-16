@@ -48,7 +48,7 @@ def get_positional_embeddings(sequence_length, d):
 # CLASSES VIT
 
 class ViT (nn.Module):
-    def __init__(self, images_shape, patch_size=4, t_blocks=2, token_dim=8, n_heads=2, output_dim=10, mlp_layer_size=8):
+    def __init__(self, images_shape, patch_size=4, t_blocks=2, token_dim=8, n_heads=1, output_dim=10, mlp_layer_size=8):
         super().__init__()
         
         self.c,self.h_image,self.w_image=images_shape
@@ -82,7 +82,7 @@ class ViT (nn.Module):
         positional_embeddings = get_positional_embeddings(int((self.h_image/self.patch_size)**2+1),int(self.token_dim))
 
         tokens      = torch.cat((all_class_token,linear_emb),dim=1)
-        out         = tokens    + positional_embeddings.repeat(self.n_images, 1, 1)    # positional embeddings will be added
+        out         = tokens    +  positional_embeddings.repeat(self.n_images, 1, 1)    # positional embeddings will be added
 
         for block in self.blocks:
             out = block(out)
@@ -149,6 +149,7 @@ class MSA_Module(nn.Module):
                 attention        = attention_mask@v
                 concat[head,:,:]  = attention 
             result[idx,:,:]=torch.flatten(input=concat, start_dim=0, end_dim=1)
+        return result
         #out=torch.matmul(linear_l,result)
         for idx,i in enumerate(result):
             temp=self.linear_map(result[idx].T)
@@ -165,7 +166,7 @@ def main():
     train_loader = DataLoader(train_set, shuffle=True, batch_size=128)
     test_loader = DataLoader(test_set, shuffle=False, batch_size=128)
 
-    model = ViT((1, 28, 28), patch_size=4, t_blocks=2, token_dim=8, n_heads=2, output_dim=10,mlp_layer_size=8)
+    model = ViT((1, 28, 28), patch_size=4, t_blocks=2, token_dim=8, n_heads=1, output_dim=10,mlp_layer_size=8)
     N_EPOCHS = 1
     LR = 0.005
     optimizer = Adam(model.parameters(), lr=LR)
