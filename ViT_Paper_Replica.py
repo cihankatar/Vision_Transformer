@@ -62,7 +62,8 @@ class MyMSA(nn.Module):
                 attention = self.softmax(q @ k.T / (self.d_head ** 0.5))
                 seq_result.append(attention @ v)
             result.append(torch.hstack(seq_result))
-        return torch.cat([torch.unsqueeze(r, dim=0) for r in result])
+        a=torch.cat([torch.unsqueeze(r, dim=0) for r in result])
+        return a
 
 
 class MyViTBlock(nn.Module):

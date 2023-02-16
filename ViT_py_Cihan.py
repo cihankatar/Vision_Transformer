@@ -82,7 +82,7 @@ class ViT (nn.Module):
         positional_embeddings = get_positional_embeddings(int((self.h_image/self.patch_size)**2+1),int(self.token_dim))
 
         tokens      = torch.cat((all_class_token,linear_emb),dim=1)
-        out         = tokens   # + positional_embeddings.repeat(self.n_images, 1, 1)    # positional embeddings will be added
+        out         = tokens    + positional_embeddings.repeat(self.n_images, 1, 1)    # positional embeddings will be added
 
         for block in self.blocks:
             out = block(out)
@@ -131,10 +131,12 @@ class MSA_Module(nn.Module):
         self.n,self.number_tokens,self.token_size = tokens.shape
         result = torch.zeros(self.n,self.number_tokens*self.n_heads,self.token_size)
         out    = torch.zeros((self.n,self.number_tokens,self.token_size))
+        
 
         for idx,token in enumerate(tokens):   # 128 batch. each of 50x8, token size : 50x8   --> 50x8            
-            concat      = torch.zeros(self.n_heads,self.number_tokens,self.token_size)
-        
+            concat      = torch.zeros(self.n_heads,self.number_tokens,self.token_size)        
+            linear_l = torch.rand(self.n,self.number_tokens,self.number_tokens*self.n_heads)
+
             for head in range(self.n_heads):        # number of heads : 2
                 q_linear = self.q_layers[head]      # linear (8x8)  == 50x8 --> 50x8
                 k_linear = self.k_layers[head]
@@ -146,14 +148,15 @@ class MSA_Module(nn.Module):
 
                 mat_mul = (torch.matmul(q, k.T)) / ((self.number_tokens-1)**0.5)   # 50x8 x 8x50 = 50x50 
                 attention_mask  = self.softmax(mat_mul)
-                attention       = torch.matmul(attention_mask,v)
-                concat[head,:,:] = attention
+                attention        = attention_mask@v
+                concat[head,:,:]  = attention 
             result[idx,:,:]=torch.flatten(input=concat, start_dim=0, end_dim=1)
-        
-
+            out=torch.matmul(linear_l,result)
+        '''
         for idx,i in enumerate(result):
             temp=self.linear_map(result[idx].T)
             out[idx]=temp.T
+        '''
         return out
 
 def main():
