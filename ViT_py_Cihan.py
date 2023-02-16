@@ -131,12 +131,10 @@ class MSA_Module(nn.Module):
         self.n,self.number_tokens,self.token_size = tokens.shape
         result = torch.zeros(self.n,self.number_tokens*self.n_heads,self.token_size)
         out    = torch.zeros((self.n,self.number_tokens,self.token_size))
-        
+        linear_l = torch.rand(self.n,self.number_tokens,self.number_tokens*self.n_heads)
 
         for idx,token in enumerate(tokens):   # 128 batch. each of 50x8, token size : 50x8   --> 50x8            
             concat      = torch.zeros(self.n_heads,self.number_tokens,self.token_size)        
-            linear_l = torch.rand(self.n,self.number_tokens,self.number_tokens*self.n_heads)
-
             for head in range(self.n_heads):        # number of heads : 2
                 q_linear = self.q_layers[head]      # linear (8x8)  == 50x8 --> 50x8
                 k_linear = self.k_layers[head]
@@ -151,12 +149,10 @@ class MSA_Module(nn.Module):
                 attention        = attention_mask@v
                 concat[head,:,:]  = attention 
             result[idx,:,:]=torch.flatten(input=concat, start_dim=0, end_dim=1)
-            out=torch.matmul(linear_l,result)
-        '''
+        #out=torch.matmul(linear_l,result)
         for idx,i in enumerate(result):
             temp=self.linear_map(result[idx].T)
             out[idx]=temp.T
-        '''
         return out
 
 def main():
