@@ -170,7 +170,7 @@ def main():
     test_loader = DataLoader(test_set, shuffle=False, batch_size=128)
 
     model = ViT((1, 28, 28), patch_size=4, t_blocks=2, token_dim=8, n_heads=2, output_dim=10,mlp_layer_size=8)
-    N_EPOCHS = 6
+    N_EPOCHS = 2
     LR = 0.005
     optimizer = Adam(model.parameters(), lr=LR)
     criterion = CrossEntropyLoss()
