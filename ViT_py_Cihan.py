@@ -48,7 +48,7 @@ def get_positional_embeddings(sequence_length, d):
 # CLASSES VIT
 
 class ViT (nn.Module):
-    def __init__(self, images_shape, patch_size=4, t_blocks=2, token_dim=8, n_heads=3, output_dim=10, mlp_layer_size=8):
+    def __init__(self, images_shape, patch_size=4, t_blocks=2, token_dim=8, n_heads=2, output_dim=10, mlp_layer_size=8):
         super().__init__()
         
         self.c,self.h_image,self.w_image=images_shape
@@ -94,7 +94,7 @@ class ViT (nn.Module):
 
 class ViTBlock(nn.Module):
 
-    def __init__(self, token_dim, mlp_layer_size=8, num_heads=3):
+    def __init__(self, token_dim, mlp_layer_size=8, num_heads=2):
         super().__init__() 
         self.token_dim      = token_dim
         self.num_heads      = num_heads
@@ -125,13 +125,15 @@ class MSA_Module(nn.Module):
         self.v_layers   = nn.ModuleList([nn.Linear(token_dim,token_dim) for _ in range(n_heads)])
         self.softmax    = nn.Softmax(dim=-1)
         self.linear_map = nn.Linear(150,50)   #  ???????????????
+        #self.linear_l = torch.rand(self.n,self.number_tokens,self.number_tokens*self.n_heads)
+        self.conv1d = nn.Conv1d(in_channels =100,out_channels=50,kernel_size=1,stride=1)
+
 
     def forward (self, tokens):
         
         self.n,self.number_tokens,self.token_size = tokens.shape
         result = torch.zeros(self.n,self.number_tokens*self.n_heads,self.token_size)
         out    = torch.zeros((self.n,self.number_tokens,self.token_size))
-        linear_l = torch.rand(self.n,self.number_tokens,self.number_tokens*self.n_heads)
 
         for idx,token in enumerate(tokens):   # 128 batch. each of 50x8, token size : 50x8   --> 50x8            
             concat      = torch.zeros(self.n_heads,self.number_tokens,self.token_size)        
@@ -149,7 +151,8 @@ class MSA_Module(nn.Module):
                 attention        = attention_mask@v
                 concat[head,:,:]  = attention 
             result[idx,:,:]=torch.flatten(input=concat, start_dim=0, end_dim=1)
-       # return result
+        
+        return self.conv1d(result)
 
         for idx,i in enumerate(result):
             temp=self.linear_map(result[idx].T)
@@ -166,7 +169,7 @@ def main():
     train_loader = DataLoader(train_set, shuffle=True, batch_size=128)
     test_loader = DataLoader(test_set, shuffle=False, batch_size=128)
 
-    model = ViT((1, 28, 28), patch_size=4, t_blocks=2, token_dim=8, n_heads=3, output_dim=10,mlp_layer_size=8)
+    model = ViT((1, 28, 28), patch_size=4, t_blocks=2, token_dim=8, n_heads=2, output_dim=10,mlp_layer_size=8)
     N_EPOCHS = 6
     LR = 0.005
     optimizer = Adam(model.parameters(), lr=LR)
