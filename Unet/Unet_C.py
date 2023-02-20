@@ -33,36 +33,37 @@ class dataset(Dataset):
         super().__init__()
         self.path       = path
         self.image_dir_list  = image_dir_list
-    
-    def __getitem__(self, idx):        
+        self.images=[]
 
-        if 'jpg' in self.image_dir_list:
+
+    def getitems(self):        
+        for idx in range(len(self.image_dir_list)):
+            #if 'jpg' in self.image_dir_list:
             image_dir = os.path.join(path,self.image_dir_list[idx])
-            image=Image.open(self.image_dir)
+            image=Image.open(image_dir)
             image=np.array(image)
+            image = np.transpose(image, (2, 0, 1))
             image=torch.from_numpy(image)
-            return image
+            self.images.append(image)
+        return self.images
+    
+    def len(self):
+        return len(self.image_dir_list)
+
 
 path = "train/images"
 images_dir_list = os.listdir(path) 
 print("Files and directories in '", path, "' :")  
 print('type:{},lengt:{}'.format(type(images_dir_list),len(images_dir_list)))
 
+print(images_dir_list)
 
-
-im=[]
-
-for idx in range(len(images_dir_list)):
-    im.append(dataset(path,images_dir_list[idx]))
-
-
-
-
-train_dataset = getimage(path)
-
+Data=dataset(path,images_dir_list)
+train_dataset = Data.getitems()
 train_loader = DataLoader(
     dataset=train_dataset,
     batch_size=128,
     shuffle=True,
     num_workers=2
 )
+
