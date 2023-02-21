@@ -55,8 +55,8 @@ def main():
         shuffle=True,
         num_workers=2 )
 
-    images,masks=next(iter(train_loader))
-    print(images,masks)
+    images=next(iter(train_loader))
+    print(images)
 
 
 if __name__ == '__main__':
