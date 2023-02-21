@@ -45,7 +45,6 @@ class DriveDataset(Dataset):
         mask = mask.astype(np.float32)
         mask = torch.from_numpy(mask)
         return image, mask
-        
 
 '''
 class KVasir_dataset(Dataset):
@@ -84,11 +83,16 @@ class KVasir_dataset(Dataset):
         return len(self.image_dir_list)'''
 
 def main():
-    train_im_path = "c:\\Users\\cihan.katar\\Desktop\\Git_Repo\\Vision_Transformer\\Unet\\train\images"
-    images_dir_list = os.listdir(train_im_path) 
-    train_mask_path = "c:\\Users\\cihan.katar\\Desktop\\Git_Repo\\Vision_Transformer\\Unet\\train\masks"
-    mask_dir_list = os.listdir(train_mask_path) 
+
+    train_im_path = sorted(glob("train/images*"))
+
+    train_mask_path = sorted(glob("train/masks"))
     data=DriveDataset(train_im_path,train_mask_path)
+
+    #train_im_path = "train/images"
+    #images_dir_list = os.listdir(train_im_path) 
+    #train_mask_path = "train/masks"
+    #mask_dir_list = os.listdir(train_mask_path) 
     #data=KVasir_dataset(train_im_path,train_mask_path,images_dir_list,mask_dir_list)
     #train_dataset = data.getitems()
     #train_dataset = next(iter(train_dataset))
@@ -97,16 +101,14 @@ def main():
         dataset=data,
         batch_size=10,
         shuffle=True,
-        num_workers=2
-    )
+        num_workers=2 )
 
-    for batch in train_loader:
-        x,y=batch
+    train_dataset = next(iter(train_loader))
+
+
+
+
 
 if __name__ == '__main__':
     main()
-
-
-
-
 
