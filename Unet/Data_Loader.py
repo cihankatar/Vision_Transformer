@@ -47,7 +47,16 @@ class KVasir_dataset(Dataset):
             #    mask = self.transforms(mask)
             #self.masks.append(mask)
             return image, mask
-    
+'''
+
+        image = cv2.imread(self.images_path[index], cv2.IMREAD_COLOR)
+        image = image/255.0 ## (512, 512, 3)
+        image = np.transpose(image, (2, 0, 1))  ## (3, 512, 512)
+        image = image.astype(np.float32)
+        image = torch.from_numpy(image)
+   ''' 
+
+   
 def main():
 
     train_im_path = "train/images"
