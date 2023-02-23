@@ -92,10 +92,6 @@ def main():
     plt.imshow(label[0].numpy())
     plt.show()
 
-    
-    
-
-
 if __name__ == '__main__':
     
     main()
