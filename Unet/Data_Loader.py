@@ -18,7 +18,6 @@ class KVasir_dataset(Dataset):
         self.mask_dir_list   = mask_dir_list
         self.center_crop     = transforms
 
-
     def __len__(self):
         return len(self.image_dir_list)
     
@@ -59,9 +58,9 @@ class KVasir_dataset(Dataset):
    
 def main():
 
-    train_im_path = "train/images"
+    train_im_path = "data/images"
     images_dir_list = os.listdir(train_im_path) 
-    train_mask_path = "train/masks"
+    train_mask_path = "data/masks"
     mask_dir_list = os.listdir(train_mask_path) 
     transformations = transforms.CenterCrop(400)
 
@@ -69,7 +68,7 @@ def main():
 
     train_loader = DataLoader(
         dataset=data,
-        batch_size=1,
+        batch_size=2,
         shuffle=False,
         num_workers=2 )
 
